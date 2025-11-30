@@ -25,9 +25,9 @@ pub async fn send<T: Serialize>(stream: &mut TcpStream, msg: &T) -> io::Result<(
 pub async fn recv<T: DeserializeOwned>(stream: &mut TcpStream) -> io::Result<T> {
     let mut len_buf = [0u8; 8];
     stream.read_exact(&mut len_buf).await?;
-    let len = usize::from_be_bytes(len_buf);
+    let len: usize = usize::from_be_bytes(len_buf);
 
-    let mut buf = vec![0u8; len];
+    let mut buf: Vec<u8> = vec![0u8; len];
     stream.read_exact(&mut buf).await?;
-    serde_json::from_slice(&buf).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+    serde_json::from_slice(&buf).map_err(|e: serde_json::Error| -> std::io::Error { io::Error::new(io::ErrorKind::InvalidData, e) })
 }
